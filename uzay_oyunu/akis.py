@@ -155,4 +155,76 @@ def rota_sayaci(
     return rota_sayisi
 
 
+# ============================================================================
+# Bonus (+10 Puan) – zamanlayici(aralik) ve Meşgul Bekleme (Busy Waiting)
+# ============================================================================
+
+def zamanlayici(aralik: float) -> Generator[float, None, None]:
+    """Kaynak kitaptaki zamanlayıcı üreteci.
+
+    Sürekli döngü içerisinde geçen süreyi kontrol ederek (meşgul bekleme / busy waiting)
+    belirtilen aralık dolduğunda sinyal (zaman damgası) üretir.
+
+    Args:
+        aralik: Saniye cinsinden tetiklenme periyodu.
+
+    Yields:
+        float: Tetiklenme anındaki geçerli zaman (perf_counter).
+    """
+    son = time.perf_counter()
+    while True:
+        simdi = time.perf_counter()
+        if simdi - son >= aralik:
+            son = simdi
+            yield simdi
+
+
+def tik_tak_programi(toplam_sure: float = 10.0, yazdir: bool = False) -> list[tuple[float, str]]:
+    """10 saniye boyunca her 2 saniyede 'tik', her 5 saniyede 'tak' üreten meşgul bekleme programı.
+
+    Neden Meşgul Bekleme (Busy Waiting)?
+    Bu yaklaşımda işlemci sürekli döngüde kalarak saati sorgular (CPU polling).
+    İşlemci uyku moduna geçmez, %100 CPU çekirdeği tüketir ve enerji israfına yol açar.
+    Buna karşılık time.sleep() işletim sistemi seviyesinde thread'i BLOCKED durumuna
+    alarak CPU kullanımını %0'a indirir ve işlemciyi diğer süreçlere bırakır.
+
+    Args:
+        toplam_sure: Programın toplam çalışma süresi (saniye).
+        yazdir: Konsola 'tik' ve 'tak' metinlerinin yazdırılıp yazdırılmayacağı.
+
+    Returns:
+        list[tuple[float, str]]: Kaydedilen olaylar (gecen_sure, olay_adi).
+    """
+    baslangic = time.perf_counter()
+    tik_zamanlayici = zamanlayici(2.0)
+    tak_zamanlayici = zamanlayici(5.0)
+
+    # İki üretecin bir sonraki tetiklenme anını yakalamak için non-blocking sorgulama mantığı
+    son_tik = baslangic
+    son_tak = baslangic
+    olaylar: list[tuple[float, str]] = []
+
+    while True:
+        simdi = time.perf_counter()
+        gecen = simdi - baslangic
+
+        if gecen >= toplam_sure:
+            break
+
+        if simdi - son_tik >= 2.0:
+            son_tik = simdi
+            olaylar.append((round(gecen, 2), "tik"))
+            if yazdir:
+                print(f"[{gecen:.2f}s] tik")
+
+        if simdi - son_tak >= 5.0:
+            son_tak = simdi
+            olaylar.append((round(gecen, 2), "tak"))
+            if yazdir:
+                print(f"[{gecen:.2f}s] tak")
+
+    return olaylar
+
+
+
 

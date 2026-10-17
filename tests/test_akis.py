@@ -217,4 +217,30 @@ def test_rota_sayaci_docstring():
     assert len(rota_sayaci.__doc__.strip()) > 0
 
 
+# ============================================================================
+# Bonus Testleri: zamanlayici(aralik) ve tik-tak (10 puan)
+# ============================================================================
+
+from uzay_oyunu.akis import zamanlayici, tik_tak_programi
+
+
+def test_zamanlayici_uretec_ve_docstring():
+    """zamanlayici fonksiyonunun bir generator olduğunu ve docstring içerdiğini doğrular."""
+    g = zamanlayici(0.01)
+    assert inspect.isgenerator(g)
+    assert zamanlayici.__doc__ is not None
+    assert len(zamanlayici.__doc__.strip()) > 0
+
+
+def test_tik_tak_programi_kisa_calisma():
+    """tik_tak_programi'nın kısa bir sürede (0.1 saniye) doğru çalıştığını ve liste döndürdüğünü doğrular."""
+    olaylar = tik_tak_programi(toplam_sure=0.1, yazdir=False)
+    assert isinstance(olaylar, list)
+    assert tik_tak_programi.__doc__ is not None
+    # Meşgul bekleme açıklaması docstring içinde yer almalıdır
+    assert "Meşgul Bekleme" in tik_tak_programi.__doc__
+    assert "time.sleep" in tik_tak_programi.__doc__
+
+
+
 
