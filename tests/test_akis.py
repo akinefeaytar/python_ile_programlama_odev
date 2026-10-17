@@ -162,3 +162,59 @@ def test_seyir_fonksiyonlari_docstring():
         assert len(fn.__doc__.strip()) > 0
 
 
+# ============================================================================
+# Görev 4 Testleri: Önbellekli Rota Sayacı (25 puan)
+# ============================================================================
+
+import json
+from uzay_oyunu.akis import rota_sayaci
+
+GALAKSI_DOSYASI = Path(__file__).parent.parent / "uzay_oyunu" / "galaksi.json"
+
+
+@pytest.fixture
+def galaksi_baglantilari():
+    with open(GALAKSI_DOSYASI, encoding="utf-8") as f:
+        veri = json.load(f)
+    return veri["baglantilar"]
+
+
+def test_rota_sayaci_ornek_degerler(galaksi_baglantilari):
+    """PDF örneği: say('dünya', 3) -> 9, say('dünya', 10) -> 2185, say('dünya', 40) -> 16832258606399"""
+    say = rota_sayaci(galaksi_baglantilari)
+    assert say("dünya", 3) == 9
+    assert say("dünya", 10) == 2185
+    assert say("dünya", 40) == 16832258606399
+
+
+def test_rota_sayaci_adim_sifir(galaksi_baglantilari):
+    """0 adımda başlangıç gezegeninde kalınır, tam olarak 1 rota mevcuttur."""
+    say = rota_sayaci(galaksi_baglantilari)
+    assert say("dünya", 0) == 1
+    assert say("sirius", 0) == 1
+
+
+def test_rota_sayaci_lru_cache_calisiyor(galaksi_baglantilari):
+    """rota_sayisi fonksiyonunun @lru_cache ile sarmalandığını ve cache hit ürettiğini doğrular."""
+    say = rota_sayaci(galaksi_baglantilari)
+    # cache_info metodunun varlığını kontrol et
+    assert hasattr(say, "cache_info")
+
+    info_once = say.cache_info()
+    say("dünya", 10)
+    info_sonra = say.cache_info()
+    assert info_sonra.hits > info_once.hits or info_sonra.misses > info_once.misses
+
+    # Tekrar aynı çağrıyı yapınca hit artmalı
+    hits_once = say.cache_info().hits
+    say("dünya", 10)
+    assert say.cache_info().hits > hits_once
+
+
+def test_rota_sayaci_docstring():
+    """rota_sayaci ve iç fonksiyonunun docstring içerdiğini doğrular."""
+    assert rota_sayaci.__doc__ is not None
+    assert len(rota_sayaci.__doc__.strip()) > 0
+
+
+

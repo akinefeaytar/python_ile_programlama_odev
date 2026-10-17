@@ -112,3 +112,47 @@ def uzun_yolculuklar(
             yield kayit
 
 
+# ============================================================================
+# Görev 4 – Önbellekli rota sayacı (25 puan)
+# ============================================================================
+
+from functools import lru_cache
+
+
+def rota_sayaci(
+    baglantilar: dict[str, list[str]],
+) -> Callable[[str, int], int]:
+    """Verilen gezegen bağlantıları için önbellekli rota sayısı hesaplayıcı döndürür.
+
+    İçinde @lru_cache ile süslenmiş rota_sayisi(gezegen, adim) fonksiyonunu tanımlayıp döndürür.
+    rota_sayisi, verilen gezegenden başlayıp tam adim yolculuk yapan farklı rotaların
+    sayısını özyinelemeli (recursive) ve dinamik programlama mantığıyla hesaplar.
+
+    Args:
+        baglantilar: Gezegenlerin komşuluk listesini içeren sözlük.
+
+    Returns:
+        Callable[[str, int], int]: Önbelleklenmiş rota_sayisi fonksiyonu.
+    """
+    @lru_cache(maxsize=None)
+    def rota_sayisi(gezegen: str, adim: int) -> int:
+        """Verilen gezegenden başlayıp tam adim yolculuk yapan rota sayısını hesaplar.
+
+        Args:
+            gezegen: Başlangıç gezegeninin adı.
+            adim: Kalan adım sayısı (tam yolculuk uzunluğu).
+
+        Returns:
+            int: Farklı rota sayısı.
+        """
+        if adim == 0:
+            return 1
+        return sum(
+            rota_sayisi(komsu, adim - 1)
+            for komsu in baglantilar.get(gezegen, [])
+        )
+
+    return rota_sayisi
+
+
+
