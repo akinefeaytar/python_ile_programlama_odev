@@ -51,3 +51,64 @@ def yakit_gostergesi(yakit: int, tuketim: int) -> Generator[int, None, None]:
             kalan = 0
         yield kalan
 
+
+# ============================================================================
+# Görev 3 – Seyir defteri boru hattı (25 puan)
+# ============================================================================
+
+def satirlari_oku(yol: Union[str, Path]) -> Generator[str, None, None]:
+    """Dosyayı satır satır tembel (lazy) okuyarak satırları üreten üreteç.
+
+    Boş satırları ve '#' ile başlayan yorum satırlarını atlar.
+    Bellek verimliliği için tüm dosyayı bir listeye okumaz (stream/generator).
+
+    Args:
+        yol: Okunacak dosya yolu (str veya Path).
+
+    Yields:
+        str: Temizlenmiş satır metni.
+    """
+    with open(yol, mode="r", encoding="utf-8") as f:
+        for satir in f:
+            temiz = satir.strip()
+            if temiz and not temiz.startswith("#"):
+                yield temiz
+
+
+def ayristir(
+    satirlar: Iterable[str],
+) -> Generator[tuple[str, str, int], None, None]:
+    """Her satırdan (kaynak, hedef, yakit) demetini tembelce üreten üreteç.
+
+    'dünya -> sirius 12' biçimindeki satırları ayrıştırır.
+
+    Args:
+        satirlar: Ham satırları sağlayan yinelenebilir (iterable) nesne.
+
+    Yields:
+        tuple[str, str, int]: (kaynak_gezegen, hedef_gezegen, harcanan_yakit).
+    """
+    for satir in satirlar:
+        kaynak_kismi, hedef_yakit_kismi = satir.split("->")
+        kaynak = kaynak_kismi.strip()
+        hedef, yakit_str = hedef_yakit_kismi.strip().split()
+        yield (kaynak, hedef, int(yakit_str))
+
+
+def uzun_yolculuklar(
+    kayitlar: Iterable[tuple[str, str, int]], esik: int
+) -> Generator[tuple[str, str, int], None, None]:
+    """Yakıt tüketimi verilen eşikten kesinlikle büyük olan kayıtları süzen üreteç.
+
+    Args:
+        kayitlar: (kaynak, hedef, yakit) demetlerini içeren yinelenebilir nesne.
+        esik: Yakıt filtreleme alt sınırı (yakit > esik olanlar geçer).
+
+    Yields:
+        tuple[str, str, int]: Eşiği aşan yolculuk kaydı.
+    """
+    for kayit in kayitlar:
+        if kayit[2] > esik:
+            yield kayit
+
+

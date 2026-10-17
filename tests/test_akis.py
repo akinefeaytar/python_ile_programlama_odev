@@ -101,3 +101,64 @@ def test_yakit_gostergesi_uretec_ve_docstring():
     assert yakit_gostergesi.__doc__ is not None
     assert len(yakit_gostergesi.__doc__.strip()) > 0
 
+
+# ============================================================================
+# Görev 3 Testleri: Seyir Defteri Boru Hattı (25 puan)
+# ============================================================================
+
+from pathlib import Path
+from uzay_oyunu.akis import satirlari_oku, ayristir, uzun_yolculuklar
+
+SEYIR_DOSYASI = Path(__file__).parent.parent / "veri" / "seyir.txt"
+
+
+def test_seyir_toplam_yakit_88():
+    """PDF örneği: ayristir(satirlari_oku(...)) üzerinden yakıt toplamının 88 olduğunu doğrular."""
+    toplam = sum(y for _, _, y in ayristir(satirlari_oku(SEYIR_DOSYASI)))
+    assert toplam == 88
+
+
+def test_seyir_uzun_yolculuklar_esik_10():
+    """PDF örneği: uzun_yolculuklar(kayitlar, 10) hedef listesinin ['sirius', 'centauri', 'orion', 'kara_delik'] olduğunu doğrular."""
+    kayitlar = ayristir(satirlari_oku(SEYIR_DOSYASI))
+    hedefler = [h for _, h, _ in uzun_yolculuklar(kayitlar, 10)]
+    assert hedefler == ["sirius", "centauri", "orion", "kara_delik"]
+
+
+def test_seyir_yorum_ve_bos_satirlar_atlanir(tmp_path):
+    """Boşlukların ve # yorum satırlarının atlandığını test eder."""
+    test_dosyasi = tmp_path / "test_seyir.txt"
+    test_dosyasi.write_text(
+        "\n# yorum 1\ndünya -> ay 5\n\n# yorum 2\nay -> mars 10\n   \n",
+        encoding="utf-8"
+    )
+    satirlar = list(satirlari_oku(test_dosyasi))
+    assert satirlar == ["dünya -> ay 5", "ay -> mars 10"]
+
+
+def test_seyir_boru_hatti_tembeldir():
+    """Her üç aşamanın da generator (üreteç) nesnesi döndürdüğünü, listeye okumadığını doğrular."""
+    g1 = satirlari_oku(SEYIR_DOSYASI)
+    assert inspect.isgenerator(g1)
+
+    g2 = ayristir(g1)
+    assert inspect.isgenerator(g2)
+
+    g3 = uzun_yolculuklar(g2, 10)
+    assert inspect.isgenerator(g3)
+
+
+def test_seyir_uzun_yolculuklar_farkli_esik():
+    """Eşik 15 verildiğinde yalnızca 15'ten kesinlikle büyük olanların (kara_delik 30) geldiğini doğrular."""
+    kayitlar = ayristir(satirlari_oku(SEYIR_DOSYASI))
+    filtrelenmis = list(uzun_yolculuklar(kayitlar, 15))
+    assert filtrelenmis == [("sirius", "kara_delik", 30)]
+
+
+def test_seyir_fonksiyonlari_docstring():
+    """Boru hattı fonksiyonlarının docstring içerdiğini doğrular."""
+    for fn in (satirlari_oku, ayristir, uzun_yolculuklar):
+        assert fn.__doc__ is not None
+        assert len(fn.__doc__.strip()) > 0
+
+
