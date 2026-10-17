@@ -4,6 +4,7 @@
 import json
 from pathlib import Path
 from uzay_oyunu.araclar import hamle_sayaci, en_bagli_gezegenler
+from uzay_oyunu.akis import yakit_gostergesi
 
 
 # Görev 1 - saf fonksiyonlar (print etmemeli, değer döndürmeli)
@@ -60,9 +61,13 @@ galaksi = _galaksiyi_yukle()
 envanter = {"credits": True, "engines": False, "copilot": True}
 _sayac = hamle_sayaci()
 _son_hamle = [0]
+# Görev 2: Oyun başında galaksideki yakıt değeriyle gösterge oluşturulur (tüketim=5)
+_gosterge = yakit_gostergesi(galaksi["yakit"], 5)
 
 
 def travel():
+    """Her yolculukta yakıt göstergesinden değer çeker; yakıt bitince oyuncu kaybeder."""
+    global _gosterge
     env = envanter_metni(
         envanter["credits"],
         envanter["engines"],
@@ -83,8 +88,15 @@ def travel():
         print("Geçersiz seçim.")
         return
 
+    # Görev 2: Her yolculukta yakıt göstergesinden bir değer çekilir
+    try:
+        galaksi["yakit"] = next(_gosterge)
+    except StopIteration:
+        galaksi["yakit"] = 0
+        print("Yakıtın bitti, uzayda sürükleniyorsun…")
+        return
+
     galaksi["konum"] = hedefler[int(secim) - 1]
-    galaksi["yakit"] -= 10
     hamle = _sayac()
     _son_hamle[0] = hamle
     print(f"Yeni konum: {galaksi['konum']} | Yakıt: {galaksi['yakit']} | Hamle: {hamle}")
@@ -102,4 +114,6 @@ if __name__ == "__main__":
         if galaksi["konum"] == "kara_delik":
             print("Kara deliğe ulaştın!")
             break
-    oyunu_bitir()
+    if galaksi["yakit"] > 0:
+        oyunu_bitir()
+

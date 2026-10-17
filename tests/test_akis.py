@@ -53,3 +53,51 @@ def test_fibonacci_uretec_ve_docstring():
     assert inspect.isgenerator(g)
     assert fibonacci.__doc__ is not None
     assert len(fibonacci.__doc__.strip()) > 0
+
+
+# ============================================================================
+# Görev 2 Testleri: Yakıt Göstergesi (20 puan)
+# ============================================================================
+
+from uzay_oyunu.akis import yakit_gostergesi
+
+
+def test_yakit_gostergesi_ornek_cikti():
+    """PDF'teki örnek list(yakit_gostergesi(100, 30)) çıktısını doğrular: [70, 40, 10, 0]"""
+    sonuc = list(yakit_gostergesi(100, 30))
+    assert sonuc == [70, 40, 10, 0]
+
+
+def test_yakit_gostergesi_stop_iteration():
+    """Yakıt 0'a indikten sonra next() çağrıldığında StopIteration fırlatıldığını doğrular."""
+    g = yakit_gostergesi(100, 60)
+    assert next(g) == 40
+    assert next(g) == 0
+    with pytest.raises(StopIteration):
+        next(g)
+
+
+def test_yakit_gostergesi_tam_kat():
+    """Yakıt tüketimin tam katı olduğunda son adımda tam 0 üretilip durduğunu doğrular."""
+    g = yakit_gostergesi(20, 10)
+    assert next(g) == 10
+    assert next(g) == 0
+    with pytest.raises(StopIteration):
+        next(g)
+
+
+def test_yakit_gostergesi_tek_adimda_tukenme():
+    """Tüketim mevcut yakıttan büyükse 0 üretip ardından StopIteration fırlattığını doğrular."""
+    g = yakit_gostergesi(50, 100)
+    assert next(g) == 0
+    with pytest.raises(StopIteration):
+        next(g)
+
+
+def test_yakit_gostergesi_uretec_ve_docstring():
+    """yakit_gostergesi'nin generator olduğunu ve docstring içerdiğini doğrular."""
+    g = yakit_gostergesi(100, 10)
+    assert inspect.isgenerator(g)
+    assert yakit_gostergesi.__doc__ is not None
+    assert len(yakit_gostergesi.__doc__.strip()) > 0
+

@@ -25,3 +25,29 @@ def fibonacci() -> Generator[int, None, None]:
     while True:
         yield a
         a, b = b, a + b
+
+
+# ============================================================================
+# Görev 2 – Yakıt göstergesi (20 puan)
+# ============================================================================
+
+def yakit_gostergesi(yakit: int, tuketim: int) -> Generator[int, None, None]:
+    """Her next() çağrısında yakıtı tuketim kadar azaltıp kalan yakıtı üreten üreteç.
+
+    Yakıt 0'a indiğinde üreteç sonlanır (StopIteration). Kalan yakıt negatif
+    olamaz; 0'ın altına inerse 0 olarak üretilir ve ardından durur.
+
+    Args:
+        yakit: Başlangıç yakıt miktarı.
+        tuketim: Her adımda tüketilen yakıt miktarı.
+
+    Yields:
+        int: Kalan güncel yakıt miktarı.
+    """
+    kalan = yakit
+    while kalan > 0:
+        kalan -= tuketim
+        if kalan < 0:
+            kalan = 0
+        yield kalan
+
