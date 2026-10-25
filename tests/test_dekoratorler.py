@@ -3,8 +3,9 @@
 
 import pytest
 from functools import lru_cache
-from uzay_oyunu.dekoratorler import sure_olc, say, log_cagri, onbelleksiz_rota_sayaci
+from uzay_oyunu.dekoratorler import sure_olc, say, log_cagri, sinirla, yakit_harca, onbelleksiz_rota_sayaci
 from uzay_oyunu.komutlar import komut, KOMUTLAR, yardim, envanter, harita
+
 from uzay_oyunu.oyun import galaksi_kur, hedef_menusu, travel
 
 
@@ -291,6 +292,63 @@ def test_travel_komut_isleme_ve_menu_tekrar(monkeypatch, capsys):
     assert "centauri, sirius" in yakalanan.out
     # Yeni konuma gidilmiş olmalı
     assert oyun_modul.galaksi["konum"] == "centauri"
+
+
+# ============================================================================
+# Görev 5 Testleri: Argüman Alan Dekoratör (20 puan)
+# ============================================================================
+
+def test_sinirla_normal_degerler():
+    """Aralık içindeki normal değerlerin doğru çalıştığını ve yakit_harca(30) == 70 olduğunu doğrular."""
+    assert yakit_harca(30) == 70
+    assert yakit_harca(50) == 50
+
+
+def test_sinirla_sinir_degerleri():
+    """Sınır değerleri olan alt sınır (0) ve üst sınırın (100) başarıyla kabul edildiğini doğrular."""
+    # Alt sınır (0)
+    assert yakit_harca(0) == 100
+    # Üst sınır (100)
+    assert yakit_harca(100) == 0
+
+
+def test_sinirla_aralik_disi_ust_deger():
+    """Üst sınırdan büyük değerlerde (150, 101) ValueError ve doğru hata mesajı üretildiğini doğrular."""
+    with pytest.raises(ValueError) as excinfo:
+        yakit_harca(150)
+    assert "yakit_harca: 150 değeri 0-100 aralığında değil" in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo2:
+        yakit_harca(101)
+    assert "yakit_harca: 101 değeri 0-100 aralığında değil" in str(excinfo2.value)
+
+
+def test_sinirla_aralik_disi_alt_deger():
+    """Alt sınırdan küçük değerlerde (-1, -50) ValueError ve doğru hata mesajı üretildiğini doğrular."""
+    with pytest.raises(ValueError) as excinfo:
+        yakit_harca(-1)
+    assert "yakit_harca: -1 değeri 0-100 aralığında değil" in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo2:
+        yakit_harca(-50)
+    assert "yakit_harca: -50 değeri 0-100 aralığında değil" in str(excinfo2.value)
+
+
+def test_sinirla_genel_fonksiyon_ve_wraps_korunumu():
+    """sinirla dekoratörünün farklı bir fonksiyona uygulanabildiğini ve wraps korunumunu doğrular."""
+    @sinirla(10, 20)
+    def seviye_sec(seviye: int) -> str:
+        """Seviye belirleme dokümantasyonu."""
+        return f"Seviye {seviye}"
+
+    assert seviye_sec.__name__ == "seviye_sec"
+    assert seviye_sec.__doc__ == "Seviye belirleme dokümantasyonu."
+    assert seviye_sec(15) == "Seviye 15"
+
+    with pytest.raises(ValueError) as excinfo:
+        seviye_sec(5)
+    assert "seviye_sec: 5 değeri 10-20 aralığında değil" in str(excinfo.value)
+
 
 
 

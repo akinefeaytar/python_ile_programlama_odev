@@ -118,3 +118,56 @@ def onbelleksiz_rota_sayaci(
 
     return rota_sayisi
 
+
+# ============================================================================
+# Görev 5 – Argüman alan dekoratör (20 puan)
+# ============================================================================
+
+def sinirla(alt: float, ust: float) -> Callable:
+    """Dekore edilen fonksiyonun ilk argümanını [alt, ust] aralığıyla sınırlandıran dekoratör.
+
+    İlk argüman [alt, ust] kapalı aralığında değilse anlamlı bir ValueError fırlatır:
+    '{func.__name__}: {ilk_arg} değeri {alt}-{ust} aralığında değil'
+
+    functools.wraps kullanarak orijinal fonksiyonun niteliklerini korur.
+
+    Args:
+        alt: İzin verilen en küçük sayısal değer (dahil).
+        ust: İzin verilen en büyük sayısal değer (dahil).
+
+    Returns:
+        Callable: Sınır kontrolü uygulayan dekoratör.
+    """
+    def dekorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if not args:
+                raise ValueError(f"{func.__name__}: İlk argüman bulunamadı!")
+            ilk_arg = args[0]
+            if ilk_arg < alt or ilk_arg > ust:
+                raise ValueError(
+                    f"{func.__name__}: {ilk_arg} değeri {alt}-{ust} aralığında değil"
+                )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return dekorator
+
+
+@sinirla(0, 100)
+def yakit_harca(miktar: int) -> int:
+    """100 birimlik depodan verilen miktar kadar yakıt harcar ve kalanı döndürür.
+
+    @sinirla(0, 100) dekoratörü ile miktar parametresi 0-100 aralığında sınırlandırılmıştır.
+
+    Args:
+        miktar: Harcanacak yakıt miktarı (0 <= miktar <= 100).
+
+    Returns:
+        int: Kalan yakıt miktarı.
+    """
+    depo = 100
+    return depo - miktar
+
+
