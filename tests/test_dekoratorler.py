@@ -3,8 +3,9 @@
 
 import pytest
 from functools import lru_cache
-from uzay_oyunu.dekoratorler import sure_olc, say, log_cagri, sinirla, yakit_harca, onbelleksiz_rota_sayaci
+from uzay_oyunu.dekoratorler import sure_olc, say, log_cagri, sinirla, yakit_harca, hafiza, onbelleksiz_rota_sayaci
 from uzay_oyunu.komutlar import komut, KOMUTLAR, yardim, envanter, harita
+
 
 from uzay_oyunu.oyun import galaksi_kur, hedef_menusu, travel
 
@@ -348,6 +349,78 @@ def test_sinirla_genel_fonksiyon_ve_wraps_korunumu():
     with pytest.raises(ValueError) as excinfo:
         seviye_sec(5)
     assert "seviye_sec: 5 değeri 10-20 aralığında değil" in str(excinfo.value)
+
+
+# ============================================================================
+# Bonus Testleri: hafiza(maxsize=None) Dekoratörü (+10 puan)
+# ============================================================================
+
+def test_hafiza_temel_ve_lru_cache_karsilastirma():
+    """hafiza dekoratörünün sonuçlarını functools.lru_cache ile karşılaştırır.
+    Her iki yöntemin de aynı özyinelemeli fonksiyon için özdeş sonuçlar verdiğini doğrular.
+    """
+    @hafiza(maxsize=None)
+    def fib_hafiza(n: int) -> int:
+        if n < 2:
+            return n
+        return fib_hafiza(n - 1) + fib_hafiza(n - 2)
+
+    @lru_cache(maxsize=None)
+    def fib_lru(n: int) -> int:
+        if n < 2:
+            return n
+        return fib_lru(n - 1) + fib_lru(n - 2)
+
+    for i in range(25):
+        assert fib_hafiza(i) == fib_lru(i)
+
+
+def test_hafiza_maxsize_en_eski_girdiyi_silme():
+    """maxsize dolduğunda önbelleğin en eski girdiyi sildiğini doğrular."""
+    hesaplama_sayisi = [0]
+
+    @hafiza(maxsize=3)
+    def kare_al(x: int) -> int:
+        hesaplama_sayisi[0] += 1
+        return x * x
+
+    # 1, 2, 3 eklenir (kapasite dolar)
+    assert kare_al(1) == 1
+    assert kare_al(2) == 4
+    assert kare_al(3) == 9
+    assert hesaplama_sayisi[0] == 3
+    assert len(kare_al.cache) == 3
+
+    # Tekrar 2 çağrılır (cache hit olur, hesaplama sayısı artmaz, 2 en güncele taşınır)
+    assert kare_al(2) == 4
+    assert hesaplama_sayisi[0] == 3
+
+    # 4 eklenir -> en eski olan 1 silinmelidir (çünkü 2 güncellendi, sırada 1 vardı)
+    assert kare_al(4) == 16
+    assert hesaplama_sayisi[0] == 4
+    assert len(kare_al.cache) == 3
+
+    # 1'in silindiğini doğrulamak için: 1 çağrıldığında fonksiyon tekrar çalışmalı
+    assert kare_al(1) == 1
+    assert hesaplama_sayisi[0] == 5
+
+
+def test_hafiza_lru_cache_ile_sinirli_boyut_karsilastirma():
+    """maxsize kısıtı altında hafiza ve lru_cache dekoratörlerinin sonuçlarını karşılaştırır."""
+    @hafiza(maxsize=5)
+    def kup_hafiza(x: int) -> int:
+        return x ** 3
+
+    @lru_cache(maxsize=5)
+    def kup_lru(x: int) -> int:
+        return x ** 3
+
+    girdiler = [1, 2, 3, 4, 5, 2, 6, 1, 7, 3, 8]
+    hafiza_sonuclar = [kup_hafiza(x) for x in girdiler]
+    lru_sonuclar = [kup_lru(x) for x in girdiler]
+
+    assert hafiza_sonuclar == lru_sonuclar
+
 
 
 

@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 # Akın Efe Aytar - 20253006037
 # İleri Python Programlama - Hafta 5 Lab Ödevi: Dekoratörler
 
 from collections.abc import Callable
 import functools
 import time
-from typing import Any
+from typing import Any, Optional, Union
+
 
 
 # ============================================================================
@@ -169,5 +172,59 @@ def yakit_harca(miktar: int) -> int:
     """
     depo = 100
     return depo - miktar
+
+
+# ============================================================================
+# Bonus (+10 Puan) – hafiza(maxsize=None) dekoratörü
+# ============================================================================
+
+def hafiza(maxsize: int | None = None) -> Callable:
+    """functools.lru_cache kullanmadan, closure içindeki bir sözlükle çalışan önbellek dekoratörü.
+
+    Fonksiyon çağrılarının sonuçlarını closure içindeki bir Python sözlüğünde (dict)
+    saklar. Aynı argümanlarla tekrar çağrıldığında fonksiyonu tekrar çalıştırmadan
+    önbellekteki sonucu döndürür.
+
+    maxsize argümanı verildiğinde, önbellek boyutu maxsize sınırını aşarsa
+    en eski girdi (en az yakın zamanda kullanılan / ilk eklenen) sözlükten silinir.
+    maxsize=None ise önbellek sınırsız büyüyebilir.
+
+    Args:
+        maxsize: Tutulacak azami önbellek elemanı sayısı (None ise sınırsız).
+
+    Returns:
+        Callable: Önbellekleme yapan fonksiyon dekoratörü.
+    """
+    def dekorator(func: Callable) -> Callable:
+        # Closure içinde saklanan önbellek sözlüğü
+        onbellek: dict[Any, Any] = {}
+
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Hashable anahtar oluştur: konumsal argümanlar ve sıralı adlı argümanlar
+            anahtar = (args, tuple(sorted(kwargs.items())))
+
+            if anahtar in onbellek:
+                # LRU mantığı: erişilen elemanı en sona (en güncele) taşı
+                deger = onbellek.pop(anahtar)
+                onbellek[anahtar] = deger
+                return deger
+
+            sonuc = func(*args, **kwargs)
+            onbellek[anahtar] = sonuc
+
+            # Eğer maxsize sınırı aşılmışsa en eski (ilk eklenen) anahtarı tahliye et
+            if maxsize is not None and len(onbellek) > maxsize:
+                en_eski_anahtar = next(iter(onbellek))
+                del onbellek[en_eski_anahtar]
+
+            return sonuc
+
+        # Test ve inceleme için önbellek sözlüğüne referans ekle
+        wrapper.cache = onbellek
+        return wrapper
+
+    return dekorator
+
 
 
