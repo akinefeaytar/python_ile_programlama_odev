@@ -6,9 +6,11 @@ from pathlib import Path
 from uzay_oyunu.araclar import hamle_sayaci, en_bagli_gezegenler
 from uzay_oyunu.akis import yakit_gostergesi
 from uzay_oyunu.dekoratorler import log_cagri
+from uzay_oyunu.komutlar import KOMUTLAR
 
 
 # Görev 1 - saf fonksiyonlar (print etmemeli, değer döndürmeli)
+
 
 def envanter_metni(credits: bool, engines: bool, copilot: bool) -> str:
     """Eldeki eşyaları metin olarak döndürür, hiçbiri yoksa boş döner."""
@@ -70,7 +72,11 @@ _gosterge = yakit_gostergesi(galaksi["yakit"], 5)
 
 
 def travel():
-    """Her yolculukta yakıt göstergesinden değer çeker; yakıt bitince oyuncu kaybeder."""
+    """Her yolculukta yakıt göstergesinden değer çeker; yakıt bitince oyuncu kaybeder.
+
+    Oyuncunun girdisi bir komut adıysa komutu çalıştırıp sonucu yazdırır
+    ve aynı menüyü tekrar gösterir; değilse gezegen seçimi olarak yorumlar.
+    """
     global _gosterge
     env = envanter_metni(
         envanter["credits"],
@@ -85,14 +91,37 @@ def travel():
         print("Gidecek yer yok!")
         return
 
-    print(hedef_menusu(hedefler))
+    while True:
+        print(hedef_menusu(hedefler))
 
-    secim = input("Seçim: ").strip()
-    if not secim.isdigit() or not (1 <= int(secim) <= len(hedefler)):
-        print("Geçersiz seçim.")
-        return
+        secim = input("Seçim: ").strip()
+
+        # Oyun durum sözlüğü (Görev 4)
+        durum = {
+            "konum": galaksi["konum"],
+            "baglantilar": galaksi["baglantilar"],
+            "credits": envanter["credits"],
+            "engines": envanter["engines"],
+            "copilot": envanter["copilot"],
+            "yakit": galaksi.get("yakit", 0)
+        }
+
+        # Girdi bir komut adı mı?
+        if secim in KOMUTLAR:
+            komut_fn, _ = KOMUTLAR[secim]
+            sonuc = komut_fn(durum)
+            if sonuc:
+                print(sonuc)
+            continue
+
+        if not secim.isdigit() or not (1 <= int(secim) <= len(hedefler)):
+            print("Geçersiz seçim.")
+            return
+
+        break
 
     # Görev 2: Her yolculukta yakıt göstergesinden bir değer çekilir
+
     try:
         galaksi["yakit"] = next(_gosterge)
     except StopIteration:

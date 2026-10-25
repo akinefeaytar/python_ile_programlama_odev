@@ -4,7 +4,8 @@
 import pytest
 from functools import lru_cache
 from uzay_oyunu.dekoratorler import sure_olc, say, log_cagri, onbelleksiz_rota_sayaci
-from uzay_oyunu.oyun import galaksi_kur, hedef_menusu
+from uzay_oyunu.komutlar import komut, KOMUTLAR, yardim, envanter, harita
+from uzay_oyunu.oyun import galaksi_kur, hedef_menusu, travel
 
 
 # ============================================================================
@@ -187,5 +188,109 @@ def test_log_cagri_oyun_fonksiyonlari_entegrasyonu(capsys):
     assert "<- galaksi_kur = " in yakalanan2.out
     assert galaksi["konum"] == "a"
     assert galaksi["yakit"] == 80
+
+
+# ============================================================================
+# Görev 4 Testleri: Komut Sistemi ve Kayıt Deseni (30 puan)
+# ============================================================================
+
+def test_komut_dekoratoru_kayit_ve_degistirmeme():
+    """komut dekoratörünün fonksiyonu değiştirmeden kaydettiğini doğrular."""
+    @komut("test_komutu", "test açıklaması")
+    def ornek_komut(durum):
+        return "calisti"
+
+    assert "test_komutu" in KOMUTLAR
+    kayitli_fn, aciklama = KOMUTLAR["test_komutu"]
+    assert kayitli_fn is ornek_komut
+    assert aciklama == "test açıklaması"
+    assert ornek_komut({}) == "calisti"
+    del KOMUTLAR["test_komutu"]
+
+
+
+def test_komut_ayni_ad_iki_kez_valueerror():
+    """Aynı komut adı ikinci kez tanımlanırsa ValueError fırlatıldığını doğrular."""
+    with pytest.raises(ValueError, match="zaten tanımlı"):
+        @komut("yardim", "tekrar eden komut")
+        def sahte_yardim(durum):
+            pass
+
+
+def test_komut_yardim():
+    """yardim komutunun tüm komutları alfabetik sırada ve açıklamalarıyla listelediğini doğrular."""
+    durum = {}
+    cikti = yardim(durum)
+    satirlar = cikti.strip().split("\n")
+    # yardim, envanter, harita listede olmalı
+    assert any("yardim" in s and "komutları listeler" in s for s in satirlar)
+    assert any("envanter" in s and "eşyalarını gösterir" in s for s in satirlar)
+    assert any("harita" in s and "gidebileceğin gezegenleri gösterir" in s for s in satirlar)
+
+    # Alfabetik sıra kontrolü
+    komut_adlari = [s.split()[0] for s in satirlar]
+    assert komut_adlari == sorted(komut_adlari)
+
+
+def test_komut_envanter():
+    """envanter komutunun durum sözlüğündeki eşyaları doğru yansıttığını doğrular."""
+    durum_dolu = {"credits": True, "engines": False, "copilot": True}
+    cikti_dolu = envanter(durum_dolu)
+    assert "bol kredi" in cikti_dolu
+    assert "yetenekli bir pilot" in cikti_dolu
+    assert "güçlü motorlar" not in cikti_dolu
+
+    durum_bos = {"credits": False, "engines": False, "copilot": False}
+    cikti_bos = envanter(durum_bos)
+    assert "Envanterin boş" in cikti_bos
+
+
+def test_komut_harita():
+    """harita komutunun o anki konumdan gidilebilecek gezegenleri doğru listelediğini doğrular."""
+    durum = {
+        "konum": "dünya",
+        "baglantilar": {
+            "dünya": ["centauri", "sirius"],
+            "centauri": ["dünya"]
+        }
+    }
+    cikti = harita(durum)
+    assert cikti == "centauri, sirius"
+
+    durum_izole = {
+        "konum": "kara_delik",
+        "baglantilar": {"kara_delik": []}
+    }
+    assert "Gidebileceğin hiçbir gezegen yok" in harita(durum_izole)
+
+
+def test_travel_komut_isleme_ve_menu_tekrar(monkeypatch, capsys):
+    """travel() fonksiyonunda oyuncu komut girdiğinde komutun çalıştırılıp
+    sonucunun yazdırıldığını, aynı menünün tekrar gösterildiğini ve ardından
+    seçim yapıldığında yolculuğun gerçekleştiğini doğrular.
+    """
+    import uzay_oyunu.oyun as oyun_modul
+
+    # Oyun durumunu kontrollü hale getirelim
+    oyun_modul.galaksi["konum"] = "dünya"
+    oyun_modul.galaksi["baglantilar"]["dünya"] = ["centauri", "sirius"]
+    # Göstergeyi tazeleyelim
+    from uzay_oyunu.akis import yakit_gostergesi
+    oyun_modul._gosterge = yakit_gostergesi(100, 5)
+
+    # Sırasıyla girdiler: önce 'yardim', sonra 'harita', sonra geçerli seçim '1' (centauri)
+    girdiler = iter(["yardim", "harita", "1"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(girdiler))
+
+    oyun_modul.travel()
+
+    yakalanan = capsys.readouterr()
+    # yardim komutunun çıktısı yazdırılmış olmalı
+    assert "komutları listeler" in yakalanan.out
+    # harita komutunun çıktısı yazdırılmış olmalı
+    assert "centauri, sirius" in yakalanan.out
+    # Yeni konuma gidilmiş olmalı
+    assert oyun_modul.galaksi["konum"] == "centauri"
+
 
 
