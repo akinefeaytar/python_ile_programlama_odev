@@ -36,6 +36,33 @@ def sure_olc(func: Callable) -> Callable:
     return wrapper
 
 
+# ============================================================================
+# Görev 2 – Çağrı sayacı ve dekoratör sırası (20 puan)
+# ============================================================================
+
+def say(func: Callable) -> Callable:
+    """Çağrıları fonksiyonun bir niteliğinde sayan dekoratör.
+
+    Her fonksiyon çağrısında wrapper nesnesinin 'cagri' niteliğini 1 artırır.
+    functools.wraps kullanarak orijinal fonksiyonun niteliklerini korur.
+    Sayaca fonksiyon üzerinden (func.cagri) veya sarılmış durumdaysa
+    func.__wrapped__.cagri üzerinden erişilebilir.
+
+    Args:
+        func: Çağrıları sayılacak fonksiyon.
+
+    Returns:
+        Callable: Çağrı sayacı eklenmiş sarıcı fonksiyon.
+    """
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        wrapper.cagri += 1
+        return func(*args, **kwargs)
+
+    wrapper.cagri = 0
+    return wrapper
+
+
 def onbelleksiz_rota_sayaci(
     baglantilar: dict[str, list[str]],
 ) -> Callable[[str, int], int]:
@@ -56,3 +83,4 @@ def onbelleksiz_rota_sayaci(
         )
 
     return rota_sayisi
+

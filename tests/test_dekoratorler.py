@@ -2,7 +2,8 @@
 # Hafta 5 Lab Testleri - tests/test_dekoratorler.py
 
 import pytest
-from uzay_oyunu.dekoratorler import sure_olc, onbelleksiz_rota_sayaci
+from functools import lru_cache
+from uzay_oyunu.dekoratorler import sure_olc, say, onbelleksiz_rota_sayaci
 
 
 # ============================================================================
@@ -76,3 +77,63 @@ def test_sure_olc_onbelleksiz_rota_sayaci_adim_20(capsys):
     yakalanan = capsys.readouterr()
     assert "rotalari_hesapla: " in yakalanan.out
     assert " sn" in yakalanan.out
+
+
+# ============================================================================
+# Görev 2 Testleri: Çağrı Sayacı ve Dekoratör Sırası (20 puan)
+# ============================================================================
+
+def test_say_temel_islevsellik():
+    """say dekoratörünün fonksiyon çağrılarını doğru saydığını doğrular."""
+    @say
+    def karesi(x: int) -> int:
+        return x * x
+
+    assert karesi.cagri == 0
+    assert karesi(3) == 9
+    assert karesi.cagri == 1
+    assert karesi(4) == 16
+    assert karesi.cagri == 2
+
+
+def test_fibonacci_yalnizca_say():
+    """Yalnızca @say uygulandığında fib(20) için çağrı sayısının tam 21891 olduğunu doğrular."""
+    @say
+    def fib(n: int) -> int:
+        if n < 2:
+            return n
+        return fib(n - 1) + fib(n - 2)
+
+    sonuc = fib(20)
+    assert sonuc == 6765
+    assert fib.cagri == 21891
+
+
+def test_fibonacci_say_ustte_lru_altta():
+    """@say üstte, @lru_cache altta iken fib(20) için çağrı sayısının tam 39 olduğunu doğrular."""
+    @say
+    @lru_cache(maxsize=None)
+    def fib(n: int) -> int:
+        if n < 2:
+            return n
+        return fib(n - 1) + fib(n - 2)
+
+    sonuc = fib(20)
+    assert sonuc == 6765
+    assert fib.cagri == 39
+
+
+def test_fibonacci_lru_ustte_say_altta():
+    """@lru_cache üstte, @say altta iken fib(20) için iç sayaca fib.__wrapped__.cagri ile
+    ulaşıldığını ve değerinin tam 21 olduğunu doğrular."""
+    @lru_cache(maxsize=None)
+    @say
+    def fib(n: int) -> int:
+        if n < 2:
+            return n
+        return fib(n - 1) + fib(n - 2)
+
+    sonuc = fib(20)
+    assert sonuc == 6765
+    assert fib.__wrapped__.cagri == 21
+
