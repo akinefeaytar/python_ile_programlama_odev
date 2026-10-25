@@ -3,7 +3,8 @@
 
 import pytest
 from functools import lru_cache
-from uzay_oyunu.dekoratorler import sure_olc, say, onbelleksiz_rota_sayaci
+from uzay_oyunu.dekoratorler import sure_olc, say, log_cagri, onbelleksiz_rota_sayaci
+from uzay_oyunu.oyun import galaksi_kur, hedef_menusu
 
 
 # ============================================================================
@@ -136,4 +137,55 @@ def test_fibonacci_lru_ustte_say_altta():
     sonuc = fib(20)
     assert sonuc == 6765
     assert fib.__wrapped__.cagri == 21
+
+
+# ============================================================================
+# Görev 3 Testleri: Loglayan Dekoratör (15 puan)
+# ============================================================================
+
+def test_log_cagri_ornek_formati(capsys):
+    """PDF'te belirtilen log formatını birebir doğrular:
+    -> yolculuk('orion', hiz=3)
+    <- yolculuk = 'orion hiz=3'
+    """
+    @log_cagri
+    def yolculuk(hedef: str, hiz: int = 1) -> str:
+        return f"{hedef} hiz={hiz}"
+
+    sonuc = yolculuk("orion", hiz=3)
+    assert sonuc == "orion hiz=3"
+
+    yakalanan = capsys.readouterr()
+    assert "-> yolculuk('orion', hiz=3)" in yakalanan.out
+    assert "<- yolculuk = 'orion hiz=3'" in yakalanan.out
+
+
+def test_log_cagri_wraps_korunumu():
+    """log_cagri dekoratörünün wraps ile __name__ ve __doc__ niteliklerini koruduğunu doğrular."""
+    @log_cagri
+    def test_fn():
+        """Fonksiyon açıklaması."""
+        return 42
+
+    assert test_fn.__name__ == "test_fn"
+    assert test_fn.__doc__ == "Fonksiyon açıklaması."
+
+
+def test_log_cagri_oyun_fonksiyonlari_entegrasyonu(capsys):
+    """oyun.py içindeki galaksi_kur ve hedef_menusu fonksiyonlarının loglandığını doğrular."""
+    # hedef_menusu çağrısı
+    menu = hedef_menusu(["dünya", "mars"])
+    yakalanan = capsys.readouterr()
+    assert "-> hedef_menusu(['dünya', 'mars'])" in yakalanan.out
+    assert "<- hedef_menusu = " in yakalanan.out
+    assert "[1] dünya" in menu
+
+    # galaksi_kur çağrısı
+    galaksi = galaksi_kur(["a", "b"], {"a": ["b"], "b": []}, "a", yakit=80)
+    yakalanan2 = capsys.readouterr()
+    assert "-> galaksi_kur(" in yakalanan2.out
+    assert "<- galaksi_kur = " in yakalanan2.out
+    assert galaksi["konum"] == "a"
+    assert galaksi["yakit"] == 80
+
 

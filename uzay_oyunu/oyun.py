@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from uzay_oyunu.araclar import hamle_sayaci, en_bagli_gezegenler
 from uzay_oyunu.akis import yakit_gostergesi
+from uzay_oyunu.dekoratorler import log_cagri
 
 
 # Görev 1 - saf fonksiyonlar (print etmemeli, değer döndürmeli)
@@ -24,6 +25,7 @@ def envanter_metni(credits: bool, engines: bool, copilot: bool) -> str:
     return "Sende: " + ", ".join(esyalar)
 
 
+@log_cagri
 def hedef_menusu(hedefler: list[str]) -> str:
     """Numaralı hedef menüsü metnini döndürür."""
     menu = "Nereye gitmek istersin?"
@@ -34,8 +36,10 @@ def hedef_menusu(hedefler: list[str]) -> str:
 
 # Görev 3 - galaksiyi json dosyasından okuyup kurma
 
+@log_cagri
 def galaksi_kur(gezegenler, baglantilar, baslangic, **kwargs):
     """Galaksi sözlüğü oluşturur. Başlangıç gezegeni yoksa ValueError fırlatır."""
+
     if baslangic not in gezegenler:
         raise ValueError(f"'{baslangic}' gezegeni listede yok")
 

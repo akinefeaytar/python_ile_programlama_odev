@@ -63,6 +63,40 @@ def say(func: Callable) -> Callable:
     return wrapper
 
 
+# ============================================================================
+# Görev 3 – Loglayan dekoratör (15 puan)
+# ============================================================================
+
+def log_cagri(func: Callable) -> Callable:
+    """Her çağrıdan önce fonksiyon adını ve argümanlarını, sonra dönüş değerini yazdıran dekoratör.
+
+    Örnek çıktı formatı:
+    -> yolculuk('orion', hiz=3)
+    <- yolculuk = 'orion hiz=3'
+
+    functools.wraps kullanarak orijinal fonksiyonun __name__, __doc__ ve imza
+    niteliklerini korur. Fonksiyonun sonucunu değiştirmeden döndürür.
+
+    Args:
+        func: Çağrıları loglanacak fonksiyon.
+
+    Returns:
+        Callable: Loglama yapan sarıcı fonksiyon.
+    """
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        parcalar = [repr(a) for a in args]
+        parcalar.extend(f"{k}={repr(v)}" for k, v in kwargs.items())
+        arg_str = ", ".join(parcalar)
+        print(f"-> {func.__name__}({arg_str})")
+        sonuc = func(*args, **kwargs)
+        print(f"<- {func.__name__} = {repr(sonuc)}")
+        return sonuc
+
+    return wrapper
+
+
+
 def onbelleksiz_rota_sayaci(
     baglantilar: dict[str, list[str]],
 ) -> Callable[[str, int], int]:
