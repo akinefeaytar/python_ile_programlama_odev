@@ -1,4 +1,4 @@
-# İleri Python Programlama – Hafta 5 Lab Ödevi: Dekoratörler
+# Python Programlama – Lab Ödevleri
 
 **Kurum:** İstanbul Nişantaşı Üniversitesi  
 **Ders:** İleri Python Programlama (2026–2027 Güz)  
@@ -8,6 +8,61 @@
 **GitHub Deposu:** https://github.com/akinefeaytar/python_ile_programlama_odev.git  
 
 ---
+
+## İçindekiler
+
+- [Hafta 6 Lab – Hesapla, Karar Ver, Tekrarla](#hafta-6-lab--hesapla-karar-ver-tekrarla)
+- [Hafta 5 Lab – Dekoratörler](#hafta-5-lab--dekoratörler)
+
+---
+
+# Hafta 6 Lab – Hesapla, Karar Ver, Tekrarla
+
+Bu lab Hafta 3, 4 ve 5'te öğrenilenleri birleştiriyor: her görevde **hesaplama** (math, karakter dizileri, f-string), **karar** (if/elif/else, and/or/not) ve **tekrar** (while, for, break, continue) birlikte kullanıldı. Her görev **Girdi → Doğrula → İşle → Çıktı** adımlarına ayrıldı.
+
+> Ödev kuralı gereği **liste, sözlük ve `def` kullanılmadı.** Tüm dosyalar `hafta6/` klasöründe; ayrıntılar için [hafta6/README.md](hafta6/README.md).
+
+| Dosya | Görev | Puan | Öne çıkanlar |
+|---|---|---|---|
+| `hafta6/hafta6_gorev1.py` | Üçgen analizörü | 20 | Takas ile en uzun kenarı bulma, Heron formülü, `math.acos`/`math.degrees`, dik açı için `math.isclose` |
+| `hafta6/hafta6_gorev2.py` | Metin analizörü | 20 | Tek `for` döngüsü, bayrakla kelime sayımı, Türkçe `I/ı – İ/i` düzeltmesi, palindrom |
+| `hafta6/hafta6_gorev3.py` | T.C. kimlik no doğrulama | 20 | Biçim kontrolü (11 hane, rakam, ilk hane ≠ 0), T ve Ç toplamları, iki kontrol hanesi |
+| `hafta6/hafta6_gorev4.py` | Collatz kaşifi | 20 | Tek satırlık koşullu ifade, adım sayacı, iç içe döngüyle en uzun zincir |
+| `hafta6/hafta6_gorev5.py` | Adam asmaca | 20 | `tahminler += harf`, `continue` ile geçersiz/tekrar giriş, `break` ve `while … else` |
+| `hafta6/hafta6_bonus.py` | Luhn kontrol hanesi | +10 | 0–9 denenir, ilk geçerli hanede `break` → **7** |
+
+### Çalıştırma
+
+```bash
+cd hafta6
+python3 hafta6_gorev1.py   # diğer görevler için dosya adını değiştirin
+```
+
+### Doğrulanan sonuçlar (örnek girdilerle)
+
+| Görev | Girdi | Çıktı |
+|---|---|---|
+| 1 | `5 5 8` | `Tür: İkizkenar, Geniş açılı` – `Çevre: 18.00 Alan: 12.00 En büyük açı: 106.26°` |
+| 2 | `Ey Edip Adana'da pide ye` | `Harf: 19 Sesli: 10 Sessiz: 9 Rakam: 0 Kelime: 5` – `Palindrom` |
+| 3 | `10000000146` / `12345678901` | `GEÇERLİ` / `GEÇERSİZ` |
+| 4 | `27`, üst sınır `1000` | `111 adım, en yüksek değer 9232` – `en uzun zincir: 871 (178 adım)` |
+| 5 | `KOŞUL` | `K O Ş U L (hata: 2/6) Kazandınız!` |
+| Bonus | `453914880343646` | `Kontrol hanesi: 7` |
+
+Örnek girdilerin yanında farklı girdiler de denendi (dik/eşkenar üçgen, geçersiz kenarlar, rakamlı ve Türkçe karakterli cümle, hatalı biçimli kimlik numaraları, `n = 1`, 6 hatayla kaybetme).
+
+### Git commit geçmişi (Hafta 6)
+
+- `Hafta 6 Görev 1: Üçgen analizörü (Heron, kosinüs teoremi, isclose ile dik açı kontrolü)`
+- `Hafta 6 Görev 2: Metin analizörü (tek for döngüsü, bayrakla kelime sayımı, palindrom)`
+- `Hafta 6 Görev 3: T.C. kimlik numarası doğrulama (biçim kontrolü ve kontrol haneleri)`
+- `Hafta 6 Görev 4: Collatz kaşifi (adım sayısı, en yüksek değer, iç içe döngüyle en uzun zincir)`
+- `Hafta 6 Görev 5: Adam asmaca (continue, break ve while-else)`
+- `Hafta 6 Bonus (+10): Luhn algoritmasıyla kontrol hanesi bulma`
+
+---
+
+# Hafta 5 Lab – Dekoratörler
 
 ## 1. Proje Özeti ve Yapılan Çalışmalar
 
